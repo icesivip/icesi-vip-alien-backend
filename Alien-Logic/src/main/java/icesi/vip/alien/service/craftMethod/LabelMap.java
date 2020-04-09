@@ -22,10 +22,29 @@ public class LabelMap {
 			for (int j = 0; j < distribution[0].length; j++) {
 				try {
 					map[i][j].up = map[i - 1][j];
+				} catch (Exception e) {
+					// TODO: handle exception
+				}
+				
+				
+				try {
 					map[i][j].right = map[i][j + 1];
+				} catch (Exception e) {
+					// TODO: handle exception
+				}
+				
+				try {
 					map[i][j].down = map[i + 1][j];
+				} catch (Exception e) {
+					// TODO: handle exception
+				}
+				
+				try {
 					map[i][j].left = map[i][j - 1];
-				} catch (Exception e) {}
+				} catch (Exception e) {
+					// TODO: handle exception
+				}
+
 			}
 		}
 	}
