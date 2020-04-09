@@ -8,7 +8,11 @@ import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
+/**
+ * 
+ * @author Luis Fernando Muñoz Morales
+ *
+ */
 public class Simplex implements Solver {
 	/**
 	 * The M represents the coeficient of the artifical variables in the objective
@@ -119,8 +123,6 @@ public class Simplex implements Solver {
 			calculateInitialBase();
 			internalteration(model.getType().equals(Model.MAXIMIZE));
 
-			// solve(model);
-
 		} catch (Exception e) {
 			// throw new Exception("Characters not allowed");
 			e.printStackTrace();
@@ -147,7 +149,6 @@ public class Simplex implements Solver {
 		if (quotientTest()) {
 			internalteration(model.getType().equals(Model.MAXIMIZE));
 			iterationID++;
-			// Final.print(2,2);
 		} else {
 			double[][] array = Final.getMatrix(0, Final.getRowDimension() - 1, 0, Final.getColumnDimension() - 2)
 					.getArray();
@@ -158,19 +159,13 @@ public class Simplex implements Solver {
 						valuesSolution[j] = Final.getArray()[i][Final.getColumnDimension() - 1];
 				}
 			}
-			System.out.print("solución valores ");
-			for (int i = 0; i < valuesSolution.length; i++) {
-				System.out.print(valuesSolution[i] + " ");
-			}
 			solution = new Solution(model, valuesSolution);
 			try {
 				messageSolution = findKindOfSolution();
-				// System.out.println(messageSolution);
 			} catch (Exception ex) {
 				Logger.getLogger(Simplex.class.getName()).log(Level.SEVERE, null, ex);
 			}
 		}
-		Final.print(2, 2);
 		return Final.getArray();
 	}
 
@@ -235,9 +230,6 @@ public class Simplex implements Solver {
 				}
 			}
 		}
-		// for (int i = 0; i < Base.length; i++) {
-		// System.out.println(Base[i]);
-		// }
 	}
 
 	/**
@@ -298,8 +290,6 @@ public class Simplex implements Solver {
 		}
 
 		Matrix B = new Matrix(B1);
-		// System.out.println("B: ");
-		// B.print(2, 2);
 		return B;
 	}
 
@@ -320,8 +310,6 @@ public class Simplex implements Solver {
 		}
 
 		Matrix C_B = new Matrix(C_B1);
-		// System.out.println("C_B:");
-		// C_B.print(2, 2);
 		return C_B;
 	}
 
@@ -390,16 +378,11 @@ public class Simplex implements Solver {
 			model.addConstraint(matr[i], caracteres[caracteres.length - 2],
 					Double.parseDouble(caracteres[caracteres.length - 1]), "name?");
 		}
-		// System.out.println("cantidad de variables"+toEnter.size() + " <- holgura
-		// negativos" + model.getVariableCount());
 		ConsLeft = new Matrix(matr);
 		if (isBigM) {
 			enlargeFO(ExcessVarsPos.size());
 			normalizeBigM(ExcessVarsPos.size() + EqualityConstPos.size(), equations);
 		}
-		System.out.println(model.toString());
-		// System.out.println("Constantes izquierda");
-		// ConsLeft.print(2,2);
 		return isBigM;
 	}
 
@@ -429,7 +412,6 @@ public class Simplex implements Solver {
 			model = new Model(vars, pesos, Model.MINIMIZE);
 
 		FObj = new Matrix(toFO);
-		// FObj.print(2, 2);
 		double[][] toEqua = new double[equations.length - 1][1];
 
 		for (int i = 1; i < equations.length; i++) {
@@ -437,8 +419,6 @@ public class Simplex implements Solver {
 			toEqua[i - 1][0] = Double.parseDouble(caracteres[caracteres.length - 1]);
 		}
 		equalities = new Matrix(toEqua);
-		// System.out.println("igualdades:");
-		// equalities.print(2, 2);
 	}
 
 	/**
@@ -466,7 +446,7 @@ public class Simplex implements Solver {
 		}
 		if (masGrande != 0) {
 			procd = true;
-			operationsDone += "La variable " + model.getVariableAt(posMasG).getName() + " entra a base.";
+			operationsDone += "The variable " + model.getVariableAt(posMasG).getName() + " gets into base.";
 		}
 		theta = new double[Base.length];
 		double rowLow = Double.MAX_VALUE;
@@ -482,13 +462,10 @@ public class Simplex implements Solver {
 			if (posLow != -1) {
 				Base[posLow] = posMasG;
 				varsBase[posLow] = model.getVariableAt(posMasG).getName();
-				operationsDone += " La variable " + model.getVariableAt(posLow + nVarDecision).getName()
-						+ " sale de base";
+				operationsDone += " The variable " + model.getVariableAt(posLow + nVarDecision).getName()
+						+ " gets out of base";
 			} else
 				procd = false;
-			for (int i = 0; i < Base.length; i++) {
-				System.out.println(Base[i]);
-			}
 		}
 		return procd;
 	}
@@ -540,11 +517,9 @@ public class Simplex implements Solver {
 	 *            Set of equations
 	 */
 	private void normalizeBigM(int emes, String[] equations) {
-		System.out.println("emes " + emes);
 		double[][] aNormalizar = ConsLeft.getArray();
 		calculateInitialBase();
 		internalteration(!model.getType().equals(Model.MAXIMIZE));
-		Final.print(2, 2);
 	}
 
 	/**
@@ -560,8 +535,6 @@ public class Simplex implements Solver {
 			newFO[i][0] = oldFO[i][0];
 		}
 		FObj = new Matrix(newFO);
-		// System.out.println("FO expandido:");
-		// FObj.print(2, 2);
 	}
 
 	/**
@@ -583,6 +556,7 @@ public class Simplex implements Solver {
 	 */
 	@Override
 	public Solution solve(Model model) {
+		this.model = model;
 		double[][] finalFinal = null;
 		double[][] sig = nextIteration();
 		while (!sig.equals(finalFinal)) {
@@ -659,6 +633,10 @@ public class Simplex implements Solver {
 			}
 		}
 		return values;
+	}
+	
+	public Model getModel() {
+		return model;
 	}
 
 	/**
