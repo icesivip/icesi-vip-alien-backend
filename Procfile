@@ -1,1 +1,1 @@
-web: java -Dserver.port=$PORT $JAVA_OPTS -jar Alien-Rest/target/*.jar
+web: java -Dserver.port=$PORT $JAVA_OPTS -cp Alien-Rest\target\classes\icesi\vip\alien
