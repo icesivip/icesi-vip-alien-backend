@@ -32,11 +32,6 @@ public class Simplex implements Solver {
 	 */
 	private SensivilityAnalysis analysis;
 	/**
-	 * Matrix with variables, without the Z row, the basic variables column non thw
-	 * equalities row.
-	 */
-	private Matrix ConsLeft;
-	/**
 	 * Identity matrix before its conversion
 	 */
 	private Matrix MId;
@@ -49,10 +44,6 @@ public class Simplex implements Solver {
 	 * of Basic Variables
 	 */
 	private Matrix SlackOF;
-	/**
-	 * Matrix that represents the right side of the constraints.
-	 */
-	private Matrix equalities;
 	/**
 	 * Position of the variables contained in the base.
 	 */
@@ -70,10 +61,6 @@ public class Simplex implements Solver {
 	 */
 	private Matrix Final;
 	/**
-	 * Number of decision variables.
-	 */
-	private int nVarDecision;
-	/**
 	 * Represents the value of the solution.
 	 */
 	private Solution solution;
@@ -85,10 +72,6 @@ public class Simplex implements Solver {
 	 * Defines the number of the actual iteration.
 	 */
 	private int iterationID;
-	/**
-	 * Represents the initial matrix of the problem.
-	 */
-	private String[] initialM;
 	/**
 	 * Defines the operations that have already been done.
 	 */
@@ -110,23 +93,24 @@ public class Simplex implements Solver {
 	 *             excepcion cuando o porque"
 	 */
 	public Simplex(String opti, String[] equations) throws Exception {
-		initialM = equations;
 		iterationID = 0;
 		String[] caracteres = equations[0].split(" ");
-		// -2 del 1 z y -2 del = C. No se divide entre 2 por las variables de holgura
-		nVarDecision = caracteres.length / 2 - 2;
 		try {
 			generateEquaAndFOMatries(equations, opti);
 
-			generateConstraintsLeftMatrix(equations, model.getType().equals(Model.MAXIMIZE));
+			generateConstraintsLeftMatrix(equations, model.getType());
 
 			calculateInitialBase();
-			internalteration(model.getType().equals(Model.MAXIMIZE));
+			internalteration();
 
 		} catch (Exception e) {
 			// throw new Exception("Characters not allowed");
 			e.printStackTrace();
 		}
+	}
+
+	public Simplex() {
+		// TODO Auto-generated constructor stub
 	}
 
 	/**
@@ -147,7 +131,7 @@ public class Simplex implements Solver {
 	public double[][] nextIteration() {
 		operationsDone = "";
 		if (quotientTest()) {
-			internalteration(model.getType().equals(Model.MAXIMIZE));
+			internalteration();
 			iterationID++;
 		} else {
 			double[][] array = Final.getMatrix(0, Final.getRowDimension() - 1, 0, Final.getColumnDimension() - 2)
@@ -210,15 +194,14 @@ public class Simplex implements Solver {
 	 * Calculate the initial base of the problem
 	 */
 	private void calculateInitialBase() {
-		double[][] array = ConsLeft.getArray();
-		Base = new int[equalities.getArray().length];
+		Base = new int[model.getConstraintCount()];
 		varsBase = new String[Base.length];
-		for (int i = 0; i < array.length; i++) {
-			for (int j = nVarDecision; j < array[0].length; j++) {
-				if (array[i][j] == 1) {
+		for (int i = 0; i < model.getConstraintCount(); i++) {
+			for (int j = getnVarDecision(); j < model.getVariableCount(); j++) {
+				if (model.getConstraintAt(i).getVariablePonderation(j) == 1) {
 					boolean base = true;
-					for (int k = 0; k < array.length; k++) {
-						if (array[k][j] != 0 && k != i) {
+					for (int k = 0; k < model.getConstraintCount(); k++) {
+						if (model.getConstraintAt(k).getVariablePonderation(j) != 0 && k != i) {
 							base = false;
 							break;
 						}
@@ -279,13 +262,13 @@ public class Simplex implements Solver {
 	 *            Basic values of the initial matrix
 	 * @return The set of matrix coefficients
 	 */
-	public static Matrix CreaB(Matrix A, int[] Base) {
+	public Matrix CreaB(int[] Base) {
 
 		double[][] B1 = new double[Base.length][Base.length];
 
 		for (int i = 0; i < Base.length; i++) {
 			for (int j = 0; j < Base.length; j++) {
-				B1[i][j] = A.getArray()[i][Base[j]];
+				B1[i][j] = model.getConstraintAt(i).getVariablePonderation(Base[j]);
 			}
 		}
 
@@ -302,11 +285,11 @@ public class Simplex implements Solver {
 	 *            Set of basic variables
 	 * @return Set of slack variables
 	 */
-	private Matrix takeSlackOF(Matrix ObjF, int[] Base) {
+	private Matrix takeSlackOF() {
 		double[][] C_B1 = new double[Base.length][1];
 
 		for (int j = 0; j < Base.length; j++) {
-			C_B1[j][0] = ObjF.getArray()[Base[j]][0];
+			C_B1[j][0] = FObj.getArray()[Base[j]][0];
 		}
 
 		Matrix C_B = new Matrix(C_B1);
@@ -322,7 +305,8 @@ public class Simplex implements Solver {
 	 *            Indicates whether this problem is being maximized or not
 	 * @return Indication that the constraints were created successfully or not
 	 */
-	private boolean generateConstraintsLeftMatrix(String[] equations, boolean isMax) {
+	private boolean generateConstraintsLeftMatrix(String[] equations, String type) {
+		boolean isMax = type.equals(Model.MAXIMIZE);
 		double[][] matr = new double[equations.length - 1][];
 		int slackPos = 1;
 		ArrayList<Integer> ExcessVarsPos = calculatePosExcess(equations);
@@ -332,31 +316,31 @@ public class Simplex implements Solver {
 		boolean isBigM = false;
 		for (int i = 1; i < equations.length; i++) {
 			String[] caracteres = equations[i].split(" ");
-			double[] equation = new double[nVarDecision + equations.length - 1 + ExcessVarsPos.size()];
+			double[] equation = new double[getnVarDecision() + equations.length - 1 + ExcessVarsPos.size()];
 			int j;
-			for (j = 0; j < nVarDecision; j++) {
+			for (j = 0; j < getnVarDecision(); j++) {
 				// el +2 omite la Z que le entra por parámetro
 				equation[j] = Double.parseDouble(caracteres[j * 2 + 2]);
 			}
 			try {
 				if (i == slackPos)
-					equation[i + nVarDecision - 1] = 1;
+					equation[i + getnVarDecision() - 1] = 1;
 
 				if (ExcessVarsPos.contains(i)) {
 					equation[equation.length - ExcessVarsPos.size() + ExcessVarsPos.indexOf(i)] = -1;
-					FObj.getArray()[i + nVarDecision - 1][0] = BIG_M;
+					FObj.getArray()[i + getnVarDecision() - 1][0] = BIG_M;
 					isBigM = true;
 					if (isMax)
-						FObj.getArray()[i + nVarDecision - 1][0] *= -1;
-					model.addVariable("A" + i, Variable.CONTINUOUS, FObj.getArray()[i + nVarDecision - 1][0]);
+						FObj.getArray()[i + getnVarDecision() - 1][0] *= -1;
+					model.addVariable("A" + i, Variable.CONTINUOUS, FObj.getArray()[i + getnVarDecision() - 1][0]);
 					toEnter.add(new Variable("E" + i, Variable.CONTINUOUS));
 					valuesTE.add(0.0);
 				} else if (EqualityConstPos.contains(i)) {
-					FObj.getArray()[i + nVarDecision - 1][0] = BIG_M;
+					FObj.getArray()[i + getnVarDecision() - 1][0] = BIG_M;
 					isBigM = true;
 					if (isMax)
-						FObj.getArray()[i + nVarDecision - 1][0] *= -1;
-					model.addVariable("A" + i, Variable.CONTINUOUS, FObj.getArray()[i + nVarDecision - 1][0]);
+						FObj.getArray()[i + getnVarDecision() - 1][0] *= -1;
+					model.addVariable("A" + i, Variable.CONTINUOUS, FObj.getArray()[i + getnVarDecision() - 1][0]);
 				} else {
 					model.addVariable("S" + i, Variable.CONTINUOUS, 0);
 				}
@@ -376,9 +360,8 @@ public class Simplex implements Solver {
 		for (int i = 0; i < matr.length; i++) {
 			String[] caracteres = equations[i + 1].split(" ");
 			model.addConstraint(matr[i], caracteres[caracteres.length - 2],
-					Double.parseDouble(caracteres[caracteres.length - 1]), "name?");
+					Double.parseDouble(caracteres[caracteres.length - 1]), "C"+i);
 		}
-		ConsLeft = new Matrix(matr);
 		if (isBigM) {
 			enlargeFO(ExcessVarsPos.size());
 			normalizeBigM(ExcessVarsPos.size() + EqualityConstPos.size(), equations);
@@ -396,15 +379,16 @@ public class Simplex implements Solver {
 	 */
 	private void generateEquaAndFOMatries(String[] equations, String opti) {
 		String[] objective = equations[0].split(" ");
-		double[][] toFO = new double[equations.length - 1 + nVarDecision][1];
-		Variable[] vars = new Variable[nVarDecision];
-		double[] pesos = new double[nVarDecision];
+		int localnVarD = objective.length/2 -2;
+		double[][] toFO = new double[equations.length - 1 + localnVarD][1];
+		Variable[] vars = new Variable[localnVarD];
+		double[] pesos = new double[localnVarD];
 		String[] caracteres = equations[0].split(" ");
-
-		for (int i = 1; i <= nVarDecision; i++) {
-			toFO[i - 1][0] = Double.parseDouble(objective[i * 2]) * (-1);
-			vars[i - 1] = new Variable(caracteres[(i * 2) + 1], Variable.CONTINUOUS);
-			pesos[i - 1] = toFO[i - 1][0];
+		
+		for (int i = 0; i < localnVarD; i++) {
+			toFO[i][0] = Double.parseDouble(objective[(i+1) * 2]) * (-1);
+			vars[i] = new Variable(caracteres[(i+1) * 2 + 1], Variable.CONTINUOUS);
+			pesos[i] = toFO[i][0];
 		}
 		if (Model.MAXIMIZE.equalsIgnoreCase(opti))
 			model = new Model(vars, pesos, Model.MAXIMIZE);
@@ -418,7 +402,6 @@ public class Simplex implements Solver {
 			caracteres = equations[i].split(" ");
 			toEqua[i - 1][0] = Double.parseDouble(caracteres[caracteres.length - 1]);
 		}
-		equalities = new Matrix(toEqua);
 	}
 
 	/**
@@ -462,7 +445,7 @@ public class Simplex implements Solver {
 			if (posLow != -1) {
 				Base[posLow] = posMasG;
 				varsBase[posLow] = model.getVariableAt(posMasG).getName();
-				operationsDone += " The variable " + model.getVariableAt(posLow + nVarDecision).getName()
+				operationsDone += " The variable " + model.getVariableAt(posLow + getnVarDecision()).getName()
 						+ " gets out of base";
 			} else
 				procd = false;
@@ -471,7 +454,12 @@ public class Simplex implements Solver {
 	}
 
 	public int getnVarDecision() {
-		return nVarDecision;
+		int counter = 0;
+		for (int i = 0; i < model.getVariableCount(); i++) {
+			if(model.getVariableAt(i).getName().startsWith("X"))
+				counter++;
+		}
+		return counter;
 	}
 
 	/**
@@ -517,9 +505,8 @@ public class Simplex implements Solver {
 	 *            Set of equations
 	 */
 	private void normalizeBigM(int emes, String[] equations) {
-		double[][] aNormalizar = ConsLeft.getArray();
 		calculateInitialBase();
-		internalteration(!model.getType().equals(Model.MAXIMIZE));
+			internalteration();
 	}
 
 	/**
@@ -540,15 +527,34 @@ public class Simplex implements Solver {
 	/**
 	 * Method in charge of controlling the internal iterations of the problem.
 	 */
-	private void internalteration(boolean isMax) {
-		MId = CreaB(ConsLeft, Base);
-		SlackOF = takeSlackOF(FObj, Base);
+	private void internalteration() {
+		MId = CreaB(Base);
+		SlackOF = takeSlackOF();
 		B_inv = MId.inverse();
-		Matrix X_B = B_inv.times(equalities);
-		Matrix TAB = B_inv.times(ConsLeft);
+		Matrix X_B = B_inv.times(convertEqualitiesToMatrix());
+		Matrix TAB = B_inv.times(convertConstraintsToMatrix());
 		Matrix Fila_z = ((SlackOF.transpose()).times(TAB)).minus(FObj.transpose());
 		Matrix z_v = (SlackOF.transpose()).times(X_B);
 		Final = CrearTabla(TAB, X_B, Fila_z, z_v);
+	}
+
+	private Matrix convertEqualitiesToMatrix() {
+		double[][] equas = new double[model.getConstraintCount()][1];
+		for (int i = 0; i < model.getConstraintCount(); i++) {
+			equas[i][0] = model.getConstraintAt(i).getRightSideValue();
+		}
+		return new Matrix(equas);
+	}
+
+	private Matrix convertConstraintsToMatrix() {
+		double[][] matrix = new double[model.getConstraintCount()][model.getVariableCount()];
+		for(int i = 0; i < matrix.length; i++) {
+			Constraint alv = model.getConstraintAt(i);
+			for (int j = 0; j < matrix[0].length; j++) {
+				matrix[i][j] = alv.getVariablePonderation(j);
+			}
+		}
+		return new Matrix(matrix);
 	}
 
 	/**
@@ -557,6 +563,9 @@ public class Simplex implements Solver {
 	@Override
 	public Solution solve(Model model) {
 		this.model = model;
+		initializeFobj();
+		calculateInitialBase();
+		internalteration();
 		double[][] finalFinal = null;
 		double[][] sig = nextIteration();
 		while (!sig.equals(finalFinal)) {
@@ -564,6 +573,14 @@ public class Simplex implements Solver {
 			sig = nextIteration();
 		}
 		return solution;
+	}
+
+	private void initializeFobj() {
+		double [][] fo = new double[model.getVariableCount()][1];
+		for (int i = 0; i < model.getVariableCount(); i++) {
+			fo[i][0] = model.getVariableWeight(i);
+		}
+		FObj = new Matrix(fo);
 	}
 
 	/**
@@ -607,29 +624,30 @@ public class Simplex implements Solver {
 	 * @return
 	 */
 	public double[] getRHSInitialM() {
-		double[] rhs = new double[initialM.length];
-		for (int i = 0; i < initialM.length; i++) {
-			rhs[i] = Double.parseDouble(initialM[i].split(" ")[nVarDecision * 2 + 3]);
+		double[] rhs = new double[model.getConstraintCount()+1];
+		rhs[0] = 0;
+		for (int i = 1; i < rhs.length; i++) {
+			rhs[i] = model.getConstraintAt(i-1).getRightSideValue();
 		}
 		return rhs;
 	}
 
 	public double[] getFinalValuesConstraints() {
-		double[] values = new double[initialM.length - 1];
+		double[] values = new double[model.getConstraintCount()];
 		if (solution != null) {
-			for (int i = 1; i < initialM.length; i++) {
-				String[] restr = initialM[i].split(" ");
+			for (int i = 0; i < values.length; i++) {
+				Constraint restr = model.getConstraintAt(i);
 				double val = 0;
-				for (int j = 2; j < restr.length - 2; j += 2) {
+				for (int j = 0; j < restr.getVariableCount(); j += 1) {
 					try {
-						val += Double.parseDouble(restr[j]) * solution.getVariableValue(model.getVariableAt(j / 2 - 1));
+						val += restr.getVariablePonderation(j) * solution.getVariableValue(model.getVariableAt(j));
 					} catch (NumberFormatException e) {
 						e.printStackTrace();
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
 				}
-				values[i - 1] = roundDouble(val);
+				values[i] = roundDouble(val);
 			}
 		}
 		return values;
@@ -675,10 +693,10 @@ public class Simplex implements Solver {
 	}
 
 	public double[] getReducedCosts() {
-		double[] reducedCosts = new double[nVarDecision];
+		double[] reducedCosts = new double[getnVarDecision()];
 		if (solution != null) {
 			double[][] intervals = analysis.getIntervalsDFO();
-			for (int i = 0; i < nVarDecision; i++) {
+			for (int i = 0; i < getnVarDecision(); i++) {
 				 try {
 					if(solution.getVariableValue(model.getVariableAt(i)) == 0) {
 						 if(model.getType().equals(model.MAXIMIZE))
@@ -754,7 +772,7 @@ public class Simplex implements Solver {
 	public void buildAnalysis() {
 		SlackOF = SlackOF.transpose();
 		Matrix shadowPrice = SlackOF.times(B_inv);
-		analysis = new SensivilityAnalysis(Base, getEveryVariableName(), model, solution, shadowPrice, equalities,
+		analysis = new SensivilityAnalysis(Base, getEveryVariableName(), model, solution, shadowPrice, convertEqualitiesToMatrix(),
 				Final);
 	}
 

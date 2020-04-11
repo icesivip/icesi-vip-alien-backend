@@ -21,7 +21,13 @@ public class SimplexAlgorithmRest {
 		String[] equas = equations.split("n");
 		Simplex simplex = new Simplex(opti, equas);
 		if (iteration.equals("F")) {
-			simplex.solve(simplex.getModel());
+			Simplex sim = new Simplex();
+			sim.solve(simplex.getModel());
+			if (sim.getMessageSol() != null) {
+				sim.buildAnalysis();
+				sim.getIntervals();
+			}
+			return sim;
 		} else {
 			for (int i = 0; i < Integer.parseInt(iteration); i++) {
 				simplex.nextIteration();
