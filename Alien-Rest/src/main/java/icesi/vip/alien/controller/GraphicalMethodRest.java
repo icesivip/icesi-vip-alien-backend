@@ -11,7 +11,7 @@ import icesi.vip.alien.service.graphicalMethod.GraphicalMethodContainer;
 
 @RestController
 @RequestMapping("/api/graphicalMethodModule")
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = "*",methods= {RequestMethod.GET,RequestMethod.POST})
 public class GraphicalMethodRest {
 	
 	@RequestMapping(value="/graphicalMethod",method=RequestMethod.GET)
