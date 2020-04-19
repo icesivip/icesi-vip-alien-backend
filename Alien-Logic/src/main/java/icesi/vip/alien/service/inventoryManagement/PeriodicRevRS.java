@@ -2,31 +2,31 @@ package icesi.vip.alien.service.inventoryManagement;
 
 public class PeriodicRevRS implements InventorySystem {
 
-	private int reviewTime;
+	private byte reviewTime;
 	private int availableInventory;
-	private float diaryDemand;
-	private int leadTime;
+	private float dailyDemand;
+	private float leadTime;
 	private float serviceLevel;
-	private float standardDeviationDiaryDemand;
+	private float standardDeviationDailyDemand;
 	
-	public double calculateSecurityStock () {
+	public double calculateSafetyStock () {
 		return serviceLevel * calculateDeviationRPluSL();
 	}
 	
 	private double calculateDeviationRPluSL () {
-		return Math.sqrt(Math.pow(standardDeviationDiaryDemand, 2)* (reviewTime + leadTime));
+		return Math.sqrt(Math.pow(standardDeviationDailyDemand, 2)* (reviewTime + leadTime));
 	}
 	
 	@Override
 	public double calculateQuantity() {
-		return diaryDemand*(reviewTime + leadTime) + serviceLevel * calculateDeviationRPluSL() - availableInventory;
+		return dailyDemand*(reviewTime + leadTime) + serviceLevel * calculateDeviationRPluSL() - availableInventory;
 	}
 
-	public int getReviewTime() {
+	public byte getReviewTime() {
 		return reviewTime;
 	}
 
-	public void setReviewTime(int reviewTime) {
+	public void setReviewTime(byte reviewTime) {
 		this.reviewTime = reviewTime;
 	}
 
@@ -38,19 +38,19 @@ public class PeriodicRevRS implements InventorySystem {
 		this.availableInventory = availableInventory;
 	}
 
-	public float getDiaryDemand() {
-		return diaryDemand;
+	public float getDailyDemand() {
+		return dailyDemand;
 	}
 
-	public void setDiaryDemand(float diaryDemand) {
-		this.diaryDemand = diaryDemand;
+	public void setDailyDemand(float diaryDemand) {
+		this.dailyDemand = diaryDemand;
 	}
 
-	public int getLeadTime() {
+	public float getLeadTime() {
 		return leadTime;
 	}
 
-	public void setLeadTime(int leadTime) {
+	public void setLeadTime(float leadTime) {
 		this.leadTime = leadTime;
 	}
 
@@ -62,12 +62,12 @@ public class PeriodicRevRS implements InventorySystem {
 		this.serviceLevel = serviceLevel;
 	}
 
-	public float getStandardDeviationDiaryDemand() {
-		return standardDeviationDiaryDemand;
+	public float getStandardDeviationDailyDemand() {
+		return standardDeviationDailyDemand;
 	}
 
-	public void setStandardDeviationDiaryDemand(float standardDeviationDiaryDemand) {
-		this.standardDeviationDiaryDemand = standardDeviationDiaryDemand;
+	public void setStandardDeviationDailyDemand(float standardDeviationDiaryDemand) {
+		this.standardDeviationDailyDemand = standardDeviationDiaryDemand;
 	}
 
 }
