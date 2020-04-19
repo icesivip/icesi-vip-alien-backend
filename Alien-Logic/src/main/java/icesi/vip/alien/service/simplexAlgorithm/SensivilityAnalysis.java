@@ -72,7 +72,8 @@ public class SensivilityAnalysis {
 				Variable var = modeloS.getVariableAt(x);
 				equations.append(var.getName() + " = ");
 				equations.append(solution.getVariableValue(var) + " ");
-				equationsToShow.append(var.getName() + " = ");
+				String v = var.getName().substring(1);
+				equationsToShow.append(var.getName().charAt(0) + "<sub>"+ v + "</sub> = ");
 				equationsToShow.append(withoutDecimal(Simplex.roundDouble(solution.getVariableValue(var))) + " ");
 				for (int j = 0; j < posSlacks.size(); j++) {
 					double actual = finalM.getArray()[i][posSlacks.get(j)];
@@ -213,7 +214,8 @@ public class SensivilityAnalysis {
 				}
 				Variable var = modeloS.getVariableAt(x);
 				equations.append(var.getName() + " = ");
-				equationsToShow.append(var.getName() + " = ");
+				String v = var.getName().substring(1);
+				equationsToShow.append(var.getName().charAt(0) + "<sub>" + v +"</sub> = ");
 				for (int j = 0; j < finalM.getRowDimension(); j++) {
 					if (j == 0) {
 						String constant;
