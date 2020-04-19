@@ -2,23 +2,23 @@ package icesi.vip.alien.service.inventoryManagement;
 
 public class ContinuousRevSQ implements InventorySystem{
 
-	private float annualDemand;
+	private int annualDemand;
 	private float orderCost;
 	private float keepingCost;
-	private float leadTime;
+	private int leadTime;
 	private float serviceLevel;
-	private float standardDeviationDailyDemand;
+	private float standardDeviationDiaryDemand;
 	private float standardDeviationLeadTime;
-	private short businessDays;
+	private float businessDays;
 	
-	public double calculateReorderPoint () {
+	public double calculateReOrderPoint () {
 		double d = calculateDiaryDemand();
-		return (d*leadTime) + calculateSafetyStock();
+		return (d*leadTime) + calculateSecurityStock();
 	}
 	
-	public double calculateSafetyStock () {
+	public double calculateSecurityStock () {
 		double d = calculateDiaryDemand();
-		return serviceLevel*Math.sqrt(Math.pow(d, 2) + Math.pow(standardDeviationDailyDemand, 2) + Math.pow(standardDeviationLeadTime, 2) + leadTime);
+		return serviceLevel*Math.sqrt(Math.pow(d, 2) + Math.pow(standardDeviationDiaryDemand, 2) + Math.pow(standardDeviationLeadTime, 2) + leadTime);
 	}
 	
 	private double calculateDiaryDemand () {
@@ -29,11 +29,11 @@ public class ContinuousRevSQ implements InventorySystem{
 		return Math.sqrt(2*annualDemand*orderCost/keepingCost);
 	}
 
-	public float getAnnualDemand() {
+	public int getAnnualDemand() {
 		return annualDemand;
 	}
 
-	public void setAnnualDemand(float annualDemand) {
+	public void setAnnualDemand(int annualDemand) {
 		this.annualDemand = annualDemand;
 	}
 
@@ -53,11 +53,11 @@ public class ContinuousRevSQ implements InventorySystem{
 		this.keepingCost = keepingCost;
 	}
 
-	public float getLeadTime() {
+	public int getLeadTime() {
 		return leadTime;
 	}
 
-	public void setLeadTime(float leadTime) {
+	public void setLeadTime(int leadTime) {
 		this.leadTime = leadTime;
 	}
 
@@ -69,12 +69,12 @@ public class ContinuousRevSQ implements InventorySystem{
 		this.serviceLevel = serviceLevel;
 	}
 
-	public float getStandardDeviationDailyDemand() {
-		return standardDeviationDailyDemand;
+	public float getStandardDeviationDiaryDemand() {
+		return standardDeviationDiaryDemand;
 	}
 
-	public void setStandardDeviationDailyDemand(float standardDeviationDiaryDemand) {
-		this.standardDeviationDailyDemand = standardDeviationDiaryDemand;
+	public void setStandardDeviationDiaryDemand(float standardDeviationDiaryDemand) {
+		this.standardDeviationDiaryDemand = standardDeviationDiaryDemand;
 	}
 
 	public float getStandardDeviationLeadTime() {
@@ -85,15 +85,11 @@ public class ContinuousRevSQ implements InventorySystem{
 		this.standardDeviationLeadTime = standardDeviationLeadTime;
 	}
 
-	public short getBusinessDays() {
+	public float getBusinessDays() {
 		return businessDays;
 	}
 
-	public void setBusinessDays(short businessDays) throws NumberException{
-		if(businessDays>365)
-			throw new NumberException("Business days", "can't be more than", 365);
-		else if (businessDays < 1)
-			throw new NumberException("Business days", "can't be less than", 1);
+	public void setBusinessDays(float businessDays) {
 		this.businessDays = businessDays;
 	}
 

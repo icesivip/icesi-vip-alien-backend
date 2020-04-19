@@ -5,9 +5,9 @@ import org.apache.el.stream.Stream;
 
 public class InventoryForDeterministicDemand {
 
-	private static final String CONTINUOUS_SQ = "(s,Q)";
-	private static final String CONTINUOUS_SS = "(s,S)";
-	private static final String PERIODIC_RS = "(R,S)";
+	private static final String CONTINUOUS_SQ = "(s,Q) Continuous review fixed-order-quantity system";
+	private static final String CONTINUOUS_SS = "(s,S) Continuous review order-up-to system";
+	private static final String PERIODIC_RS = "(R,S) Periodic review fixed-order interval system";
 
 	private InventorySystem invSystem;
 
@@ -20,8 +20,8 @@ public class InventoryForDeterministicDemand {
 			invSystem = new PeriodicRevRS();
 	}
 
-	public void configureSQ(float annualDemand, float orderCost, float keepingCost, float leadTime, float serviceLevel,
-			float standardDeviationDailyDemand, float standardDeviationLeadTime, short businessDays) throws NumberException {
+	public void configureSQ(int annualDemand, float orderCost, float keepingCost, int leadTime, float serviceLevel,
+			float standardDeviationDiaryDemand, float standardDeviationLeadTime, float businessDays) {
 		ContinuousRevSQ sq = (ContinuousRevSQ) invSystem;
 		sq.setAnnualDemand(annualDemand);
 		sq.setBusinessDays(businessDays);
@@ -29,50 +29,46 @@ public class InventoryForDeterministicDemand {
 		sq.setLeadTime(leadTime);
 		sq.setOrderCost(orderCost);
 		sq.setServiceLevel(serviceLevel);
-		sq.setStandardDeviationDailyDemand(standardDeviationDailyDemand);
+		sq.setStandardDeviationDiaryDemand(standardDeviationDiaryDemand);
 		sq.setStandardDeviationLeadTime(standardDeviationLeadTime);
 	}
 
-	public void configureSS(int maxLevelInventory, int minLevelInventory) throws NumberException {
+	public void configureSS(float maxLevelInventory, float minLevelInventory) {
 		ContinuousRevSS ss = (ContinuousRevSS) invSystem;
-		if(maxLevelInventory-minLevelInventory >0) {
 		ss.setMaxLevelInventory(maxLevelInventory);
 		ss.setMinLevelInventory(minLevelInventory);
-		} else throw new NumberException("Max level inventory", "can't be smaller than", minLevelInventory);
 	}
 
-	public void configureRS(byte reviewTime, int availableInventory, float dailyDemand, float leadTime, float serviceLevel,
-			float standardDeviationDailyDemand) throws NumberException {
-		if(standardDeviationDailyDemand< dailyDemand) {
+	public void configureRS(int reviewTime, int availableInventory, float diaryDemand, int leadTime, float serviceLevel,
+			float standardDeviationDiaryDemand) {
 		PeriodicRevRS rs = (PeriodicRevRS) invSystem;
 		rs.setAvailableInventory(availableInventory);
-		rs.setDailyDemand(standardDeviationDailyDemand);
+		rs.setDiaryDemand(standardDeviationDiaryDemand);
 		rs.setLeadTime(leadTime);
 		rs.setReviewTime(reviewTime);
 		rs.setServiceLevel(serviceLevel);
-		rs.setStandardDeviationDailyDemand(standardDeviationDailyDemand);
-		} else throw new NumberException("Standard deviation daily demand","can't be greater than ",dailyDemand);
+		rs.setStandardDeviationDiaryDemand(standardDeviationDiaryDemand);
 	}
 
-	public double getQuantity() {
+	public double calculateQuantity() {
 		return invSystem.calculateQuantity();
 	}
 
-	public double getSafetyStock() {
+	public double calculateSecurityStock() {
 		if (invSystem instanceof ContinuousRevSQ) {
 			ContinuousRevSQ sq = (ContinuousRevSQ) invSystem;
-			return sq.calculateSafetyStock();
+			return sq.calculateSecurityStock();
 		} else if (invSystem instanceof PeriodicRevRS) {
 			PeriodicRevRS rs = (PeriodicRevRS) invSystem;
-			return rs.calculateSafetyStock();
+			return rs.calculateSecurityStock();
 		} else
 			return -1;
 	}
 
-	public double getReorderPoint() {
+	public double calculateReorderPoint() {
 		if (invSystem instanceof ContinuousRevSQ) {
 			ContinuousRevSQ sq = (ContinuousRevSQ) invSystem;
-			return sq.calculateReorderPoint();
+			return sq.calculateReOrderPoint();
 		} else
 			return -1;
 	}
@@ -82,7 +78,4 @@ public class InventoryForDeterministicDemand {
 		return d.inverseCumulativeProbability(sL);
 	}
 
-	public InventorySystem getInvSystem() {
-		return invSystem;
-	}
 }
