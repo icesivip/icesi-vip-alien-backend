@@ -2,27 +2,27 @@ package icesi.vip.alien.service.inventoryManagement;
 
 public class ContinuousRevSS implements InventorySystem{
 
-	private float maxLevelInventory;
-	private float minLevelInventory;
+	private int maxLevelInventory;
+	private int minLevelInventory;
 	
 	@Override
 	public double calculateQuantity() {
 			return maxLevelInventory - minLevelInventory;
 	}
 
-	public float getMaxLevelInventory() {
+	public int getMaxLevelInventory() {
 		return maxLevelInventory;
 	}
 
-	public void setMaxLevelInventory(float maxLevelInventory) {
+	public void setMaxLevelInventory(int maxLevelInventory) {
 		this.maxLevelInventory = maxLevelInventory;
 	}
 
-	public float getMinLevelInventory() {
+	public int getMinLevelInventory() {
 		return minLevelInventory;
 	}
 
-	public void setMinLevelInventory(float minLevelInventory) {
+	public void setMinLevelInventory(int minLevelInventory) {
 		this.minLevelInventory = minLevelInventory;
 	}
 
