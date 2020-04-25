@@ -1,32 +1,36 @@
 package icesi.vip.alien.service.inventoryManagement;
 
+import java.sql.Time;
+import icesi.vip.alien.service.inventoryManagement.InventoryDetDemand.TimeUnit;
+
 public class PeriodicRevRS implements InventorySystem {
 
-	private byte reviewTime;
+	private short reviewTime;
 	private int availableInventory;
-	private float dailyDemand;
+	private float demand;
 	private float leadTime;
 	private float serviceLevel;
-	private float standardDeviationDailyDemand;
+	private float standardDeviationDemand;
+	private TimeUnit timeUnit;
 	
 	public double calculateSafetyStock () {
-		return serviceLevel * calculateDeviationRPluSL();
+		return InventoryDetDemand.calculateZ(serviceLevel) * calculateDeviationRPluSL();
 	}
 	
 	private double calculateDeviationRPluSL () {
-		return Math.sqrt(Math.pow(standardDeviationDailyDemand, 2)* (reviewTime + leadTime));
+		return Math.sqrt(Math.pow(standardDeviationDemand, 2)* (reviewTime + leadTime));
 	}
 	
 	@Override
 	public double calculateQuantity() {
-		return dailyDemand*(reviewTime + leadTime) + serviceLevel * calculateDeviationRPluSL() - availableInventory;
+		return demand*(reviewTime + leadTime) + InventoryDetDemand.calculateZ(serviceLevel) * calculateDeviationRPluSL() - availableInventory;
 	}
 
-	public byte getReviewTime() {
+	public short getReviewTime() {
 		return reviewTime;
 	}
 
-	public void setReviewTime(byte reviewTime) {
+	public void setReviewTime(short reviewTime) {
 		this.reviewTime = reviewTime;
 	}
 
@@ -39,11 +43,36 @@ public class PeriodicRevRS implements InventorySystem {
 	}
 
 	public float getDailyDemand() {
-		return dailyDemand;
+		return demand;
 	}
 
-	public void setDailyDemand(float diaryDemand) {
-		this.dailyDemand = diaryDemand;
+	public void setDailyDemand(float demand) {
+//		switch (timeUnit) {
+//		case Annual:
+//			this.demand = demand/365;
+//			break;
+//		case Biannual:
+//			this.demand = (float) (demand/182.5);
+//			break;
+//		case Quarterly:
+//			this.demand = demand/91;
+//			break;
+//		case Bimonthly:
+//			this.demand = demand/61;
+//			break;
+//		case Monthly:
+//			this.demand = demand/30;
+//			break;
+//		case Weekly:
+//			this.demand = demand/7;
+//			break;
+//		case Daily:
+//			this.demand = demand;
+//			break;
+//		default:
+//			break;
+//		}
+		this.demand = demand;
 	}
 
 	public float getLeadTime() {
@@ -59,15 +88,40 @@ public class PeriodicRevRS implements InventorySystem {
 	}
 
 	public void setServiceLevel(float serviceLevel) {
-		this.serviceLevel = serviceLevel;
+		this.serviceLevel = serviceLevel/100;
 	}
 
 	public float getStandardDeviationDailyDemand() {
-		return standardDeviationDailyDemand;
+		return standardDeviationDemand;
 	}
 
-	public void setStandardDeviationDailyDemand(float standardDeviationDiaryDemand) {
-		this.standardDeviationDailyDemand = standardDeviationDiaryDemand;
+	public void setStandardDeviationDailyDemand(float standardDeviationDemand) {
+//		switch (timeUnit) {
+//		case Annual:
+//			this.standardDeviationDemand = standardDeviationDemand/365;
+//			break;
+//		case Biannual:
+//			this.standardDeviationDemand = (float) (standardDeviationDemand/182.5);
+//			break;
+//		case Quarterly:
+//			this.standardDeviationDemand = standardDeviationDemand/91;
+//			break;
+//		case Bimonthly:
+//			this.standardDeviationDemand = standardDeviationDemand/61;
+//			break;
+//		case Monthly:
+//			this.standardDeviationDemand = standardDeviationDemand/30;
+//			break;
+//		case Weekly:
+//			this.standardDeviationDemand = standardDeviationDemand/7;
+//			break;
+//		case Daily:
+//			this.standardDeviationDemand = standardDeviationDemand;
+//			break;
+//		default:
+//			break;
+//		}
+		this.standardDeviationDemand = standardDeviationDemand;
 	}
 
 }

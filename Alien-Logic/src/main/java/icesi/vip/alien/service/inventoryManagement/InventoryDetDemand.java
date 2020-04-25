@@ -3,15 +3,22 @@ package icesi.vip.alien.service.inventoryManagement;
 import org.apache.commons.math3.distribution.NormalDistribution;
 import org.apache.el.stream.Stream;
 
-public class InventoryForDeterministicDemand {
+import lombok.extern.java.Log;
 
-	private static final String CONTINUOUS_SQ = "(s,Q)";
-	private static final String CONTINUOUS_SS = "(s,S)";
-	private static final String PERIODIC_RS = "(R,S)";
+@Log
+public class InventoryDetDemand {
 
+	public static final String CONTINUOUS_SQ = "(s,Q)";
+	public static final String CONTINUOUS_SS = "(s,S)";
+	public static final String PERIODIC_RS = "(R,S)";
+
+	public enum TimeUnit {
+		Annual, Biannual, Quarterly, Bimonthly, Monthly, Weekly, Daily
+	}
+	
 	private InventorySystem invSystem;
 
-	public InventoryForDeterministicDemand(String system) {
+	public InventoryDetDemand(String system) {
 		if (system.equals(CONTINUOUS_SQ))
 			invSystem = new ContinuousRevSQ();
 		else if (system.equals(CONTINUOUS_SS))
@@ -21,37 +28,38 @@ public class InventoryForDeterministicDemand {
 	}
 
 	public void configureSQ(float annualDemand, float orderCost, float keepingCost, float leadTime, float serviceLevel,
-			float standardDeviationDailyDemand, float standardDeviationLeadTime, short businessDays) throws NumberException {
+			float standardDeviationDemand, float standardDeviationLeadTime, short businessDays, TimeUnit timeUnit) {
 		ContinuousRevSQ sq = (ContinuousRevSQ) invSystem;
-		sq.setAnnualDemand(annualDemand);
+		sq.setTimeUnit(timeUnit);
 		sq.setBusinessDays(businessDays);
+		sq.setAnnualDemand(annualDemand);
 		sq.setKeepingCost(keepingCost);
 		sq.setLeadTime(leadTime);
 		sq.setOrderCost(orderCost);
 		sq.setServiceLevel(serviceLevel);
-		sq.setStandardDeviationDailyDemand(standardDeviationDailyDemand);
+		sq.setStandardDeviationDailyDemand(standardDeviationDemand);
 		sq.setStandardDeviationLeadTime(standardDeviationLeadTime);
 	}
 
-	public void configureSS(int maxLevelInventory, int minLevelInventory) throws NumberException {
+	public void configureSS(int maxLevelInventory, int minLevelInventory) throws Exception {
 		ContinuousRevSS ss = (ContinuousRevSS) invSystem;
 		if(maxLevelInventory-minLevelInventory >0) {
 		ss.setMaxLevelInventory(maxLevelInventory);
 		ss.setMinLevelInventory(minLevelInventory);
-		} else throw new NumberException("Max level inventory", "can't be smaller than", minLevelInventory);
+		} else throw new Exception("Max level inventory can't be smaller than min level inventory");
 	}
 
-	public void configureRS(byte reviewTime, int availableInventory, float dailyDemand, float leadTime, float serviceLevel,
-			float standardDeviationDailyDemand) throws NumberException {
-		if(standardDeviationDailyDemand< dailyDemand) {
+	public void configureRS(short reviewTime, int availableInventory, float demand, float leadTime, float serviceLevel,
+			float standardDeviationDemand, TimeUnit dT) throws Exception {
+		if(standardDeviationDemand< demand) {
 		PeriodicRevRS rs = (PeriodicRevRS) invSystem;
 		rs.setAvailableInventory(availableInventory);
-		rs.setDailyDemand(standardDeviationDailyDemand);
+		rs.setDailyDemand(demand);
 		rs.setLeadTime(leadTime);
 		rs.setReviewTime(reviewTime);
 		rs.setServiceLevel(serviceLevel);
-		rs.setStandardDeviationDailyDemand(standardDeviationDailyDemand);
-		} else throw new NumberException("Standard deviation daily demand","can't be greater than ",dailyDemand);
+		rs.setStandardDeviationDailyDemand(standardDeviationDemand);
+		} else throw new Exception("Standard deviation daily demand can't be greater than demand");
 	}
 
 	public double getQuantity() {
@@ -77,7 +85,7 @@ public class InventoryForDeterministicDemand {
 			return -1;
 	}
 
-	public double calculateZ(double sL) {
+	public static double calculateZ(double sL) {
 		NormalDistribution d = new NormalDistribution();
 		return d.inverseCumulativeProbability(sL);
 	}

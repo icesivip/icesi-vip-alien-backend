@@ -1,5 +1,7 @@
 package icesi.vip.alien.service.inventoryManagement;
 
+import icesi.vip.alien.service.inventoryManagement.InventoryDetDemand.TimeUnit;
+
 public class ContinuousRevSQ implements InventorySystem{
 
 	private float annualDemand;
@@ -10,18 +12,19 @@ public class ContinuousRevSQ implements InventorySystem{
 	private float standardDeviationDailyDemand;
 	private float standardDeviationLeadTime;
 	private short businessDays;
+	private TimeUnit timeUnit;
 	
 	public double calculateReorderPoint () {
-		double d = calculateDiaryDemand();
+		double d = calculateDailyDemand();
 		return (d*leadTime) + calculateSafetyStock();
 	}
 	
 	public double calculateSafetyStock () {
-		double d = calculateDiaryDemand();
-		return serviceLevel*Math.sqrt(Math.pow(d, 2) + Math.pow(standardDeviationDailyDemand, 2) + Math.pow(standardDeviationLeadTime, 2) + leadTime);
+		double d = calculateDailyDemand();
+		return InventoryDetDemand.calculateZ(serviceLevel)*Math.sqrt(Math.pow(d, 2) * Math.pow(standardDeviationLeadTime, 2) +Math.pow(standardDeviationDailyDemand, 2) * leadTime);
 	}
 	
-	private double calculateDiaryDemand () {
+	private double calculateDailyDemand () {
 		return annualDemand/businessDays;
 	}
 	@Override
@@ -33,8 +36,32 @@ public class ContinuousRevSQ implements InventorySystem{
 		return annualDemand;
 	}
 
-	public void setAnnualDemand(float annualDemand) {
-		this.annualDemand = annualDemand;
+	public void setAnnualDemand(float demand) {
+		switch (timeUnit) {
+		case Annual:
+			this.annualDemand = demand;
+			break;
+		case Biannual:
+			this.annualDemand = demand*2;
+			break;
+		case Quarterly:
+			this.annualDemand = demand*4;
+			break;
+		case Bimonthly:
+			this.annualDemand = demand*6;
+			break;
+		case Monthly:
+			this.annualDemand = demand*12;
+			break;
+		case Weekly:
+			this.annualDemand = demand*52;
+			break;
+		case Daily:
+			this.annualDemand = demand*businessDays;
+			break;
+		default:
+			break;
+		}
 	}
 
 	public float getOrderCost() {
@@ -66,15 +93,39 @@ public class ContinuousRevSQ implements InventorySystem{
 	}
 
 	public void setServiceLevel(float serviceLevel) {
-		this.serviceLevel = serviceLevel;
+		this.serviceLevel = serviceLevel/100;
 	}
 
 	public float getStandardDeviationDailyDemand() {
 		return standardDeviationDailyDemand;
 	}
 
-	public void setStandardDeviationDailyDemand(float standardDeviationDiaryDemand) {
-		this.standardDeviationDailyDemand = standardDeviationDiaryDemand;
+	public void setStandardDeviationDailyDemand(float standardDeviationDemand) {
+		switch (timeUnit) {
+		case Annual:
+			this.standardDeviationDailyDemand = standardDeviationDemand/businessDays;
+			break;
+		case Biannual:
+			this.standardDeviationDailyDemand = standardDeviationDemand/182;
+			break;
+		case Quarterly:
+			this.standardDeviationDailyDemand = standardDeviationDemand/91;
+			break;
+		case Bimonthly:
+			this.standardDeviationDailyDemand = standardDeviationDemand/61;
+			break;
+		case Monthly:
+			this.standardDeviationDailyDemand = standardDeviationDemand/30;
+			break;
+		case Weekly:
+			this.standardDeviationDailyDemand = standardDeviationDemand/7;
+			break;
+		case Daily:
+			this.standardDeviationDailyDemand = standardDeviationDemand;
+			break;
+		default:
+			break;
+		}
 	}
 
 	public float getStandardDeviationLeadTime() {
@@ -89,12 +140,16 @@ public class ContinuousRevSQ implements InventorySystem{
 		return businessDays;
 	}
 
-	public void setBusinessDays(short businessDays) throws NumberException{
-		if(businessDays>365)
-			throw new NumberException("Business days", "can't be more than", 365);
-		else if (businessDays < 1)
-			throw new NumberException("Business days", "can't be less than", 1);
+	public void setBusinessDays(short businessDays) {
 		this.businessDays = businessDays;
+	}
+
+	public TimeUnit getTimeUnit() {
+		return timeUnit;
+	}
+
+	public void setTimeUnit(TimeUnit timeUnit) {
+		this.timeUnit = timeUnit;
 	}
 
 }
