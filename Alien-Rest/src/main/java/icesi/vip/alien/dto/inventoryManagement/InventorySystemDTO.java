@@ -10,9 +10,14 @@ import lombok.Data;
 @Data
 public class InventorySystemDTO {
 	
-	@NotNull(message = "Write some shit here")
+	public interface sqValidator {};
+	public interface ssValidator {};
+	public interface rsValidator {};
+	
+	@NotNull(groups = {sqValidator.class, rsValidator.class}, message = "Write some shit here")
 	@Positive(message = "The fckin demand must be more than 0")
-	private Float demand;
+	private float demand;
+	@Positive(message = "Must be positive")
 	private float orderCost;
 	private float keepingCost;
 	private float leadTime;
@@ -20,6 +25,7 @@ public class InventorySystemDTO {
 	private float standardDeviationDemand;
 	private float standardDeviationLeadTime;
 	private short businessDays;
+	@Positive(message = "must be positive", groups = {ssValidator.class})
 	private int maxLevelInventory;
 	private int minLevelInventory;
 	private short reviewTime;
