@@ -17,6 +17,9 @@ public class Node {
 	public NodeText getText() {
 		return text;
 	}
+	
+	
+
 
 	public Node(ModelNode copy) {
 		try {
@@ -27,11 +30,11 @@ public class Node {
 				if (copy.solution != null) {
 					text = new NodeText("Solution at Level " + copy.level, 
 							copy.model.toString(),
-							copy.solution.toString());
+							copy.solution.toString(),copy.addedConstraint);
 				} else {
 					text = new NodeText("Solution at Level " + copy.level,
 							copy.model.toString(),
-							"UNFEASIBLE BRANCH");
+							"UNFEASIBLE BRANCH",copy.addedConstraint);
 				}
 
 				if (copy.left != null) {
@@ -45,7 +48,7 @@ public class Node {
 			} else {
 				children = new ArrayList<Node>();
 
-				text = new NodeText("UNFEASIBLE BRANCH", "", "");
+				text = new NodeText("UNFEASIBLE BRANCH", "", "","");
 
 			}
 

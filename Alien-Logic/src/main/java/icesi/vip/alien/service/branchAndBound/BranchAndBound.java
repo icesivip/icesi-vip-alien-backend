@@ -36,6 +36,11 @@ public class BranchAndBound implements IntegerSolver {
                  * This variable indicates de variable of the solution 
                  */
 		public Solution solution;
+		
+		
+		public String addedConstraint;
+		
+		
                 
                 /**
                  * This builder of the modelNode, this receives the model, the parent branchAndBound, the upper node, and the level to work   
@@ -44,11 +49,12 @@ public class BranchAndBound implements IntegerSolver {
                  * @param upper this indicates the upper node 
                  * @param level this inidicates the level of the the model node
                  */
-		public ModelNode(Model model, BranchAndBound parent, ModelNode upper, int level) {
+		public ModelNode(Model model, BranchAndBound parent, ModelNode upper, int level,String addedConstraint) {
 			this.level = level;
 			this.model = model;
 			this.parent = parent;
 			this.upper = upper;
+			this.addedConstraint=addedConstraint;
 
 			System.out.println("------------------------------------------------");
 			System.out.println("B&B Node on Level " + level + "\n");
@@ -136,22 +142,22 @@ public class BranchAndBound implements IntegerSolver {
 				cons1[var] = 1;
 				m1.addConstraint(cons1, Constraint.LESS_OR_EQUAL, floor, "B&B Constraint");
 
-				left = new ModelNode(m1, parent, this, level + 1);
+				left = new ModelNode(m1, parent, this, level + 1,"X"+(var+1)+" <= "+floor);
 				Model m2 = model.copyModel();
 				m2.addConstraint(cons1, Constraint.GREATER_OR_EQUAL, ceil, "B&B Constraint");
 
-				right = new ModelNode(m2, parent, this, level + 1);
+				right = new ModelNode(m2, parent, this, level + 1,"X"+(var+1)+" >= "+ceil);
 			} else if (model.getVariableAt(var).getType().equals(Variable.BINARY)) {
 				Model m1 = model.copyModel();
 				double[] cons1 = new double[model.getVariableCount()];
 				cons1[var] = 1;
 				m1.addConstraint(cons1, Constraint.EQUAL, 0, "B&B Constraint");
 
-				left = new ModelNode(m1, parent, this, level + 1);
+				left = new ModelNode(m1, parent, this, level + 1,"X"+(var+1)+" = "+0);
 				Model m2 = model.copyModel();
 				m2.addConstraint(cons1, Constraint.EQUAL, 1, "B&B Constraint");
 
-				right = new ModelNode(m2, parent, this, level + 1);
+				right = new ModelNode(m2, parent, this, level + 1,"X"+(var+1)+" = "+1);
 			}
 
 		}
@@ -304,7 +310,7 @@ public class BranchAndBound implements IntegerSolver {
 		} else {
 			currentZ = Double.POSITIVE_INFINITY;
 		}
-		solutionTree = new ModelNode(this.originalModel, this, null, 0);
+		solutionTree = new ModelNode(this.originalModel, this, null, 0,"");
 		return boundZ;
 	}
 
