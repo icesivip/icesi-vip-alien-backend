@@ -147,10 +147,10 @@ public class Solution {
 
 		try {
 			for (int i = 0; i < model.getVariableCount(); i++) {
-				toString += (model.getVariableAt(i).getName() + " = " + this.getVariableValue(model.getVariableAt(i))
+				toString += (model.getVariableAt(i).getName() + " = " + Model.formatForDisplay(this.getVariableValue(model.getVariableAt(i)))
 						+ "\n");
 			}
-			toString += "Z = " + this.getObjectiveFunctionValue();
+			toString += "Z = " + Model.formatForDisplay(this.getObjectiveFunctionValue());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

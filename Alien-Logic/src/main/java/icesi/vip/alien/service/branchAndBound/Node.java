@@ -27,7 +27,7 @@ public class Node {
 			if (copy != null) {
 
 				children = new ArrayList<Node>();
-				if (copy.solution != null) {
+				if (copy.solution != null && copy.model.isFeasibleSolution(copy.solution)) {
 					text = new NodeText("Solution at Level " + copy.level, 
 							copy.model.toString(),
 							copy.solution.toString(),copy.addedConstraint);

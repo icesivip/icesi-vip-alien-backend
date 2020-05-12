@@ -4,6 +4,12 @@ package icesi.vip.alien.model.linearProgramming;
 import java.util.*;
 
 public class Model {
+	
+	
+	public static final int MAX_DECIMALS_FOR_DISPLAY=3;
+	
+	
+	
 	/**
 	 * this constant indicates the type of process that the model will perform, in
 	 * this case this constant indicates the process of maximize
@@ -255,6 +261,11 @@ public class Model {
 		}
 		return feasible;
 	}
+	
+	
+	public static String formatForDisplay(double value) {
+		return String.format("%."+Model.MAX_DECIMALS_FOR_DISPLAY+"f", value);
+	}
 
 	/**
 	 * Method tostring of the class
@@ -269,7 +280,7 @@ public class Model {
 			if (this.getVariableWeight(i) >= 0 && i != 0) {
 				signum = " + ";
 			}
-			toString += signum + this.getVariableWeight(i) + " " + this.getVariableAt(i).getName();
+			toString += signum + formatForDisplay(this.getVariableWeight(i)) + " " + this.getVariableAt(i).getName();
 		}
 		toString += "\nSubject to:";
 		for (int i = 0; i < this.constraints.size(); i++) {
