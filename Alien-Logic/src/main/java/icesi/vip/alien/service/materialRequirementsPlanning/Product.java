@@ -2,6 +2,7 @@ package icesi.vip.alien.service.materialRequirementsPlanning;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Queue;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -24,18 +25,18 @@ public class Product {
 	/**
 	 * Amount of products necessary to build one
 	 */
-	private ArrayList<Integer> amounts;
+	private List<Integer> amounts;
 
 	/**
 	 * Subproducts of this product 
 	 */
-	private ArrayList<Product> subProducts;
+	private List<Product> subProducts;
 	
 	/**
 	 * 
 	 */
 	@JsonIgnore
-	private ArrayList<Product> fathers;
+	private List<Product> fathers;
 	
 	/**
 	 * 
@@ -44,8 +45,8 @@ public class Product {
 	
 	private MasterPlanSchedule mps;
 	
-	public Product (String id, String name, ArrayList<Product> fathers, ArrayList<Integer> amounts, String lotSizingMethod, int leadTime, int initialStock, int securityStock, 
-			double costArticle, double preparationCost, double maintenanceCost, String periodicity, int TPeriodOFSupply, ArrayList<Integer> scheduledReceptions) {
+	public Product (String id, String name, List<Product> fathers, List<Integer> amounts, String lotSizingMethod, int leadTime, int initialStock, int securityStock, 
+			double costArticle, double preparationCost, double maintenanceCost, String periodicity, int TPeriodOFSupply, List<Integer> scheduledReceptions) {
 		
 		this.name = name;
 		this.id = id;
@@ -61,7 +62,7 @@ public class Product {
 	}
 	
 	public Product (String id, String name, Product father, int amount, String lotSizingMethod, int leadTime, int initialStock, int securityStock, 
-			double costArticle, double preparationCost, double maintenanceCost, String periodicity, int TPeriodOFSupply, ArrayList<Integer> scheduledReceptions) {
+			double costArticle, double preparationCost, double maintenanceCost, String periodicity, int TPeriodOFSupply, List<Integer> scheduledReceptions) {
 		
 		this.name = name;
 		this.id = id;
@@ -79,7 +80,7 @@ public class Product {
 	
 	public Product (String id, String name, String lotSizingMethod, int leadTime, int initialStock, int securityStock, 
 			double costArticle, double preparationCost, double maintenanceCost, String periodicity, int TPeriodOFSupply, 
-			ArrayList<Integer> bruteRequirements, ArrayList<Integer> scheduledReceptions) {
+			List<Integer> bruteRequirements, List<Integer> scheduledReceptions) {
 		
 		this.name = name;
 		this.id = id;
@@ -95,7 +96,7 @@ public class Product {
 	}
 	
 	@SuppressWarnings("unchecked")
-	private ArrayList<Integer> calculateBruteRequirements(){
+	private List<Integer> calculateBruteRequirements(){
 		ArrayList<Integer> bruteRequirements = null;
 		for(int k = 0; k < fathers.size(); k++) {
 			bruteRequirements = (ArrayList<Integer>)(new ArrayList<Integer>(fathers.get(k).mps.getReleasedPlanOrders())).clone();
@@ -168,7 +169,7 @@ public class Product {
 	 * 
 	 * @return
 	 */
-	public ArrayList<Integer> getAmount() {
+	public List<Integer> getAmount() {
 		return this.amounts;
 	}
 
@@ -185,7 +186,7 @@ public class Product {
 	 * @return
 	 */
 	@JsonIgnore
-	public ArrayList<Product> getFather() {
+	public List<Product> getFather() {
 		return fathers;
 	}
 
@@ -217,7 +218,7 @@ public class Product {
 	 * 
 	 * @return
 	 */
-	public ArrayList<Product> getSubProducts() {
+	public List<Product> getSubProducts() {
 		return this.subProducts;
 	}
 
@@ -243,7 +244,7 @@ public class Product {
 	 * 
 	 * @param subProducts
 	 */
-	public void setSubProducts(ArrayList<Product> subProducts) {
+	public void setSubProducts(List<Product> subProducts) {
 		this.subProducts = subProducts;
 	}
 
@@ -251,7 +252,7 @@ public class Product {
 	 * 
 	 * @param products
 	 */
-	public void inorder(ArrayList<Product> products) {
+	public void inorder(List<Product> products) {
 		
 		if (subProducts.size() == 0) {
 			
@@ -274,7 +275,7 @@ public class Product {
 	 * This method move in the tree in preorder.
 	 * @param products The products to go
 	 */
-	public void preorder(ArrayList<Product> products) {
+	public void preorder(List<Product> products) {
 
 		products.add(this);
 
@@ -288,7 +289,7 @@ public class Product {
 	 * This method move in the tree in postorder
 	 * @param products The products to go
 	 */
-	public void postorder (ArrayList<Product> products) {
+	public void postorder (List<Product> products) {
 		
 		for (int i = 0; subProducts != null && i < subProducts.size(); i++) {
 			System.out.println(subProducts.size());
@@ -303,7 +304,7 @@ public class Product {
 	 * 
 	 * @param products
 	 */
-	public void byLevels(ArrayList<Product> products) {
+	public void byLevels(List<Product> products) {
 
 		Queue<Product> queue = new ArrayDeque<>();
 

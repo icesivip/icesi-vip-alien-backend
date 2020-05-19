@@ -15,10 +15,15 @@ public class NodeText {
 	 */
 	private String desc;
 	
+	private String addedConstraint;
 	
-	public NodeText(String name, String title,String desc) {
+
+	
+	
+	public NodeText(String name, String title,String desc,String addedConstraint) {
 		this.name=name;
 		this.title=title;
+		this.addedConstraint=addedConstraint;
 		if(desc==null) {
 			desc="UNFEASIBLE";
 		}else {
@@ -30,6 +35,10 @@ public class NodeText {
 
 	public String getName() {
 		return name;
+	}
+	
+	public String getAddedConstraint() {
+		return this.addedConstraint;
 	}
 
 

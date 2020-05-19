@@ -258,11 +258,11 @@ public class Constraint {
 				signum = " + ";
 			}
 
-			toString += signum + this.ponderations.get(this.variables.get(i)) + " " + this.variables.get(i).getName();
+			toString += signum + Model.formatForDisplay(this.ponderations.get(this.variables.get(i))) + " " + this.variables.get(i).getName();
 
 		}
 		toString += " " + this.type;
-		toString += " " + this.rightSideValue;
+		toString += " " + Model.formatForDisplay(this.rightSideValue);
 		return toString;
 	}
 
