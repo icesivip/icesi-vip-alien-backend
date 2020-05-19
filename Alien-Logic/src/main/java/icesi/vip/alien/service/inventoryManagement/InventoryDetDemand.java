@@ -1,11 +1,12 @@
 package icesi.vip.alien.service.inventoryManagement;
 
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+
 import org.apache.commons.math3.distribution.NormalDistribution;
-import org.apache.el.stream.Stream;
 
-import lombok.extern.java.Log;
+import lombok.Getter;
 
-@Log
 public class InventoryDetDemand {
 
 	public static final String CONTINUOUS_SQ = "(s,Q)";
@@ -15,8 +16,11 @@ public class InventoryDetDemand {
 	public enum TimeUnit {
 		Annual, Biannual, Quarterly, Bimonthly, Monthly, Weekly, Daily
 	}
-	
+
+	@Getter
 	private InventorySystem invSystem;
+	@Getter
+	private String messageSolution;
 
 	public InventoryDetDemand(String system) {
 		if (system.equals(CONTINUOUS_SQ))
@@ -27,70 +31,62 @@ public class InventoryDetDemand {
 			invSystem = new PeriodicRevRS();
 	}
 
-	public void configureSQ(float annualDemand, float orderCost, float keepingCost, float leadTime, float serviceLevel,
-			float standardDeviationDemand, float standardDeviationLeadTime, short businessDays, TimeUnit timeUnit) {
-		ContinuousRevSQ sq = (ContinuousRevSQ) invSystem;
-		sq.setTimeUnit(timeUnit);
-		sq.setBusinessDays(businessDays);
-		sq.setAnnualDemand(annualDemand);
-		sq.setKeepingCost(keepingCost);
-		sq.setLeadTime(leadTime);
-		sq.setOrderCost(orderCost);
-		sq.setServiceLevel(serviceLevel);
-		sq.setStandardDeviationDailyDemand(standardDeviationDemand);
-		sq.setStandardDeviationLeadTime(standardDeviationLeadTime);
-	}
-
-	public void configureSS(int maxLevelInventory, int minLevelInventory) throws Exception {
-		ContinuousRevSS ss = (ContinuousRevSS) invSystem;
-		if(maxLevelInventory-minLevelInventory >0) {
-		ss.setMaxLevelInventory(maxLevelInventory);
-		ss.setMinLevelInventory(minLevelInventory);
-		} else throw new Exception("Max level inventory can't be smaller than min level inventory");
-	}
-
-	public void configureRS(short reviewTime, int availableInventory, float demand, float leadTime, float serviceLevel,
-			float standardDeviationDemand, TimeUnit dT) throws Exception {
-		if(standardDeviationDemand< demand) {
-		PeriodicRevRS rs = (PeriodicRevRS) invSystem;
-		rs.setAvailableInventory(availableInventory);
-		rs.setDailyDemand(demand);
-		rs.setLeadTime(leadTime);
-		rs.setReviewTime(reviewTime);
-		rs.setServiceLevel(serviceLevel);
-		rs.setStandardDeviationDailyDemand(standardDeviationDemand);
-		} else throw new Exception("Standard deviation daily demand can't be greater than demand");
-	}
-
-	public double getQuantity() {
-		return invSystem.calculateQuantity();
-	}
-
-	public double getSafetyStock() {
+	public void writeMessageSolution() {
+		messageSolution = "<html><body>";
 		if (invSystem instanceof ContinuousRevSQ) {
 			ContinuousRevSQ sq = (ContinuousRevSQ) invSystem;
-			return sq.calculateSafetyStock();
+			messageSolution += "The politic of the Inventory Control System (s,Q) would be to order Q = "
+					+ withoutDecimal(sq.calculateQuantity()) + " units";
+			messageSolution += "<br>once the Efective Inventory level reduces to s = " + withoutDecimal(sq.calculateReorderPoint())
+					+ " units.";
+			messageSolution += "<br>Remember then the Safety Stock is SS= " + withoutDecimal(sq.calculateSafetyStock()) + " units.";
 		} else if (invSystem instanceof PeriodicRevRS) {
 			PeriodicRevRS rs = (PeriodicRevRS) invSystem;
-			return rs.calculateSafetyStock();
+			double revTime = rs.calculateReviewTime();
+			messageSolution += "The politic of the Inventory Control System (R,S) would be to review the inventory every R = "
+					+ withoutDecimal(revTime) + " " + rs.convertUnitTimeToContext(revTime);
+			messageSolution += "<br>and to order an amount of units equal to S = " + withoutDecimal(rs.calculateMaxInventory())
+					+ " minus the Effective Inventory at the review time.";
+		} else if (invSystem instanceof ContinuousRevSS) {
+			ContinuousRevSS ss = (ContinuousRevSS) invSystem;
+			if (ss.getEffectiveInventory() <= ss.calculateReorderPoint()) {
+				messageSolution += "The politic of the Inventory Control System (s,S) would be to order Q = "
+						+ withoutDecimal(ss.calculateQForSS()) + " units";
+				messageSolution += "<br>since the Effective Inventory reached the reorder point.";
+			} else {
+				messageSolution += "Since the Effective Inventory hasn't reached the reorder point,";
+				messageSolution += "<br>there are no units to order at the moment.";
+			}
 		} else
-			return -1;
+			messageSolution += "The politic of the Inventory Control System has not been found";
+		messageSolution += "</body></html>";
 	}
 
-	public double getReorderPoint() {
-		if (invSystem instanceof ContinuousRevSQ) {
-			ContinuousRevSQ sq = (ContinuousRevSQ) invSystem;
-			return sq.calculateReorderPoint();
-		} else
-			return -1;
-	}
-
-	public static double calculateZ(double sL) {
+	public static double calculateSafetyFactor(double sL) {
 		NormalDistribution d = new NormalDistribution();
-		return d.inverseCumulativeProbability(sL);
+		double percentage = sL / 100;
+		return Math.abs(d.inverseCumulativeProbability(1 - percentage));
 	}
-
-	public InventorySystem getInvSystem() {
-		return invSystem;
+	
+	/**
+	 * Rounds a number to three decimal places
+	 * 
+	 * @param d
+	 *            The number to be rounded
+	 * @return Rounded value with the desired format
+	 */
+	public static double roundDouble(double d) {
+		if(Math.abs(d)<0.0000001)
+			return 0;
+		DecimalFormatSymbols separadoresPersonalizados = new DecimalFormatSymbols();
+		separadoresPersonalizados.setDecimalSeparator('.');
+		DecimalFormat df = new DecimalFormat("#.###", separadoresPersonalizados);
+		return Double.parseDouble(df.format(d));
+	}
+	
+	private String withoutDecimal(double d) {
+		DecimalFormat df = new DecimalFormat("#.###");
+		df.setDecimalSeparatorAlwaysShown(false);
+		return df.format(d);
 	}
 }

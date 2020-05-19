@@ -1,7 +1,6 @@
 package icesi.vip.alien.dto.inventoryManagement;
 
-import javax.persistence.Entity;
-import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 
@@ -13,22 +12,44 @@ public class InventorySystemDTO {
 	public interface sqValidator {};
 	public interface ssValidator {};
 	public interface rsValidator {};
+	public interface commonValidator{};
 	
-	@NotNull(groups = {sqValidator.class, rsValidator.class}, message = "Write some shit here")
-	@Positive(message = "The fckin demand must be more than 0")
-	private float demand;
-	@Positive(message = "Must be positive")
+	@Positive(groups = {commonValidator.class}, message = "The average demand must be higher than 0")
+	private float averageDemand;
+	
+	@Positive(groups = {commonValidator.class} , message = "The forecast demand must be higher than 0")
+	private float forecastDemand;
+	
+	@Positive(groups = {rsValidator.class, ssValidator.class}, message = "This standard deviation must be higher than 0")
+	private float standardDevFrcErrorsDemand;
+
+	@Positive(groups = {commonValidator.class} , message = "The order cost must be higher than 0")
 	private float orderCost;
+	
+	@Positive(groups = {commonValidator.class}, message = "The keeping cost must be higher than 0")
 	private float keepingCost;
+	
+	@Positive(groups = {commonValidator.class}, message = "The lead time must be higher than 0")
 	private float leadTime;
+	
+	@Positive(groups = {commonValidator.class}, message = "The service level must be higher than 0")
 	private float serviceLevel;
-	private float standardDeviationDemand;
-	private float standardDeviationLeadTime;
+	
+	@PositiveOrZero(groups = {commonValidator.class}, message = "The value must be equal or higher than 0")
+	private float standardDevLeadTime;
+	
+	@PositiveOrZero( message = "The business days must be higher than 0")
 	private short businessDays;
-	@Positive(message = "must be positive", groups = {ssValidator.class})
-	private int maxLevelInventory;
-	private int minLevelInventory;
-	private short reviewTime;
-	private int availableInventory;
-	private TimeUnit demandType;
+	
+	@Positive(groups = { rsValidator.class, ssValidator.class } , message = "The review cost must be higher than 0")
+	private float reviewCost;
+	
+	@Positive(groups = {ssValidator.class},message = "The effective inventory must be higher than 0")
+	private int effectiveInventory;
+	
+	@NotNull(groups = {commonValidator.class}, message = "Please select an option")
+	private TimeUnit unitTAvgDemand;
+	
+	@NotNull(groups = {commonValidator.class}, message = "Please select an option")
+	private TimeUnit unitTVariables;
 }

@@ -1,29 +1,18 @@
 package icesi.vip.alien.service.inventoryManagement;
 
-public class ContinuousRevSS implements InventorySystem{
+import lombok.Getter;
 
-	private int maxLevelInventory;
-	private int minLevelInventory;
+public class ContinuousRevSS extends InventorySystem{
+	
+	@Getter
+	private int effectiveInventory;
 	
 	@Override
 	public double calculateQuantity() {
-			return maxLevelInventory - minLevelInventory;
+		return Math.round(Math.sqrt(2*calculateAnnualDemand()*(getOrderCost()+getReviewCost())/getKeepingCost()));
 	}
-
-	public int getMaxLevelInventory() {
-		return maxLevelInventory;
+	
+	public double calculateQForSS() {
+		return calculateMaxInventory() - calculateReorderPoint();
 	}
-
-	public void setMaxLevelInventory(int maxLevelInventory) {
-		this.maxLevelInventory = maxLevelInventory;
-	}
-
-	public int getMinLevelInventory() {
-		return minLevelInventory;
-	}
-
-	public void setMinLevelInventory(int minLevelInventory) {
-		this.minLevelInventory = minLevelInventory;
-	}
-
 }
