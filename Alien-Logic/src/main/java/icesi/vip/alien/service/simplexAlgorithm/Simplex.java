@@ -175,7 +175,7 @@ public class Simplex implements Solver {
 	}
 
 	/**
-	 * Rounds a number to two decimal places
+	 * Rounds a number to three decimal places
 	 * 
 	 * @param d
 	 *            The number to be rounded
