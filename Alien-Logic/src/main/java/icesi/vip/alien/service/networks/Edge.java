@@ -4,9 +4,9 @@ public class Edge<Integer> implements Comparable<Edge<Integer>>{
 
 	private double weight;
 	private int id;
-	private Edge residual;
-    private long flow, cost;
-    private long capacity, originalCost;
+	private int rev;
+    private long flow;
+    private long capacity;
 	private Vertex<Integer> source;
 	private Vertex<Integer> destination;
 
@@ -24,26 +24,6 @@ public class Edge<Integer> implements Comparable<Edge<Integer>>{
 		this.source = source;
 		this.destination = destination;
 		this.capacity = capacity;
-	}
-
-	public Edge(Vertex<Integer> source, Vertex<Integer> destination, long capacity, long cost) {
-		this.source = source;
-		this.destination = destination;
-		this.capacity = capacity;
-		this.originalCost = this.cost = cost;
-	}
-
-	public boolean isResidual() {
-		return capacity == 0;
-	}
-
-	public long remainingCapacity() {
-		return capacity - flow;
-	}
-
-	public void augment(long bottleNeck) {
-		flow += bottleNeck;
-		residual.flow -= bottleNeck;
 	}
 
 	public double getWeight() {
@@ -74,5 +54,28 @@ public class Edge<Integer> implements Comparable<Edge<Integer>>{
 	public int getId() {
 		return id;
 	}
+	
+	public void setCapacity(long capacity) {
+		this.capacity = capacity;
+	}
 
+	public void setRev(int rev) {
+		this.rev = rev;
+	}
+	
+	public void setFlow(long flow) {
+		this.flow = flow;
+	}
+	
+	public long getFlow() {
+		return flow;
+	}
+	
+	public long getCapacity() {
+		return capacity;
+	}
+	
+	public int getRev() {
+		return rev;
+	}
 }	
