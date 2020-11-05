@@ -41,7 +41,7 @@ public   class AdjListGraph<Integer> implements IGraph<Integer> {
 	 */
 	public HashMap<Integer, AdjVertex<Integer>> map;
 	
-	
+	private String ansMFP;
 	
 	/**
 	 * This function initializes a new adjacency list graph.
@@ -55,6 +55,7 @@ public   class AdjListGraph<Integer> implements IGraph<Integer> {
 		numberOfEdges = getNumberOfEdges();
 		vertices = new LinkedList<Vertex<Integer>>();
 		map = new HashMap<>();
+		ansMFP = "";
 	}
 	
 	
@@ -142,7 +143,7 @@ public   class AdjListGraph<Integer> implements IGraph<Integer> {
 			edge.setFlow(0);
 			from.getAdjList().add(edge);
 			edge = new Edge<Integer>(to, from, 0);
-			edge.setId(-1);
+			edge.setId(id+1);
 			edge.setCapacity(0);
 			edge.setRev(from.getAdjList().size()-1);
 			edge.setFlow(0);
@@ -156,7 +157,7 @@ public   class AdjListGraph<Integer> implements IGraph<Integer> {
 				edge.setFlow(0);
 				to.getAdjList().add(edge);
 				edge = new Edge<Integer>(from, to, 0);
-				edge.setId(-1);
+				edge.setId(id+1);
 				edge.setCapacity(0);
 				edge.setRev(to.getAdjList().size()-1);
 				edge.setFlow(0);
@@ -559,7 +560,7 @@ public   class AdjListGraph<Integer> implements IGraph<Integer> {
 		return ans;
 	}
 
-	public boolean dinic_bfs(int src, int dst, int[] q, int[] dist){
+	private boolean dinic_bfs(int src, int dst, int[] q, int[] dist){
 		Arrays.fill(dist, -1);
 		dist[src]=0;
 		int qt=0;q[qt++]=src;
@@ -574,7 +575,7 @@ public   class AdjListGraph<Integer> implements IGraph<Integer> {
 		}
 		return dist[dst]>=0;
 	}
-	long dinic_dfs(int u, long f, int src, int dst, int[] work, int[] dist){
+	private long dinic_dfs(int u, long f, int src, int dst, int[] work, int[] dist){
 		if(u==dst)return f;
 		List<Edge<Integer>> vert = map.get(vertices.get(u).getIndex()).getAdjList();
 		for(int i=work[u];i<vert.size();i++){
@@ -583,13 +584,15 @@ public   class AdjListGraph<Integer> implements IGraph<Integer> {
 			int v=e.getDestination().getIndex();
 			List<Edge<Integer>> vertt = map.get(vertices.get(v).getIndex()).getAdjList();
 			if(dist[v]==dist[u]+1){
+				ansMFP+=""+u+","+e.getId()+","+v+"-";
 				long df=dinic_dfs(v,Math.min(f,e.getCapacity()-e.getFlow()), src,dst,work,dist);
 				if(df>0){e.setFlow(e.getFlow()+df);vertt.get(e.getRev()).setFlow(vertt.get(e.getRev()).getFlow()-df);return df;}
+				
 			}
 		}
 		return 0;
 	}
-	long max_flow(int _src, int _dst){
+	public long max_flow(int _src, int _dst){
 		int src=_src;int dst=_dst;
 		long result=0;
 		int[] work = new int[numberOfVertices];
@@ -598,7 +601,11 @@ public   class AdjListGraph<Integer> implements IGraph<Integer> {
 		while(dinic_bfs(src,dst,q,dist)){
 			Arrays.fill(work, 0);
 			long delta = 0;
-			while((delta=dinic_dfs(src,(long)1e18,src,dst,work,dist))>0)result+=delta;
+			while((delta=dinic_dfs(src,(long)1e18,src,dst,work,dist))>0) {
+				ansMFP+=delta+"\n";
+				result+=delta;
+			}
+			
 		}
 		return result;
 	}
@@ -659,6 +666,9 @@ public   class AdjListGraph<Integer> implements IGraph<Integer> {
 	public boolean isWeighted() {
 		return weighted;
 	}
-
+	
+	public String getAnsMFP() {
+		return ansMFP;
+	}
 
 }

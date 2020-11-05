@@ -106,4 +106,28 @@ public class NetworksRest {
 	
 	// para mfp  poner addEdgeToMFP
 	
+	@PostMapping("/solveFlow")
+	public String mfp(@RequestBody GraphDTO GraphDTO) {
+			
+		AdjListGraph<Integer> g = new AdjListGraph<>(true, true);
+		int n = GraphDTO.getGraph().length;
+		int m = GraphDTO.getGraph()[0].length;
+		int k = 0;
+		for(int i = 0; i < n; i++) g.addVertex(i);
+		for(int i = 0; i < n; i++) {
+			for(int j = 0; j < m; j++) {
+				if(!GraphDTO.getGraph()[i][j].isEmpty()) {
+					long weight =  Integer.parseInt(GraphDTO.getGraph()[i][j]);
+					g.addEdgeToMFP(i, j,weight, k);
+					k+=2;
+				}
+			}
+		}
+		g.max_flow(Integer.parseInt(GraphDTO.getSource()), Integer.parseInt(GraphDTO.getSink()));
+		String ans = g.getAnsMFP();
+		return ans;
+			
+
+	}
+	
 }
