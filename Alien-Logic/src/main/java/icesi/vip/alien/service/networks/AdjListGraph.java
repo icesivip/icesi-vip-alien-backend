@@ -41,7 +41,7 @@ public   class AdjListGraph<Integer> implements IGraph<Integer> {
 	 */
 	public HashMap<Integer, AdjVertex<Integer>> map;
 	
-	
+	private String ansMFP;
 	
 	/**
 	 * This function initializes a new adjacency list graph.
@@ -55,6 +55,7 @@ public   class AdjListGraph<Integer> implements IGraph<Integer> {
 		numberOfEdges = getNumberOfEdges();
 		vertices = new LinkedList<Vertex<Integer>>();
 		map = new HashMap<>();
+		ansMFP = "";
 	}
 	
 	
@@ -106,6 +107,25 @@ public   class AdjListGraph<Integer> implements IGraph<Integer> {
 			addEdge(from, to, w, id);
 		}
 	}
+	public void addEdge(AdjVertex<Integer> from, AdjVertex<Integer> to, double w, int id) {
+		
+		if (from != null && to != null) {
+			Edge<Integer> edge = new Edge<Integer>(from, to, w);
+			edge.setId(id);
+			edge.setCapacity((long)w);
+			edge.setRev(to.getAdjList().size());
+			edge.setFlow(0);
+			from.getAdjList().add(edge);
+		}
+	}
+	
+	public void addEdgeToMFP(Integer x, Integer y, double w, int id) {
+		if (weighted) {
+			AdjVertex<Integer> from = searchVertex(x);
+			AdjVertex<Integer> to = searchVertex(y);
+			addEdgeToMFP(from, to, w, id);
+		}
+	}
 
 	/**
 	 * This function is responsible of adding a new edge into the current graph, with weight included.
@@ -114,15 +134,34 @@ public   class AdjListGraph<Integer> implements IGraph<Integer> {
 	 * @param w The weight of the edge to be added.
 	 * @param id The id of the edge to be added.
 	 */
-	public void addEdge(AdjVertex<Integer> from, AdjVertex<Integer> to, double w, int id) {
+	public void addEdgeToMFP(AdjVertex<Integer> from, AdjVertex<Integer> to, double w, int id) {
 		if (from != null && to != null) {
 			Edge<Integer> edge = new Edge<Integer>(from, to, w);
 			edge.setId(id);
+			edge.setCapacity((long)w);
+			edge.setRev(to.getAdjList().size());
+			edge.setFlow(0);
 			from.getAdjList().add(edge);
+			edge = new Edge<Integer>(to, from, 0);
+			edge.setId(id+1);
+			edge.setCapacity(0);
+			edge.setRev(from.getAdjList().size()-1);
+			edge.setFlow(0);
+			to.getAdjList().add(edge);
+			
 			if (!isDirected()) {
 				edge = new Edge<Integer>(to, from, w);
 				edge.setId(id);
+				edge.setCapacity((long)w);
+				edge.setRev(from.getAdjList().size());
+				edge.setFlow(0);
 				to.getAdjList().add(edge);
+				edge = new Edge<Integer>(from, to, 0);
+				edge.setId(id+1);
+				edge.setCapacity(0);
+				edge.setRev(to.getAdjList().size()-1);
+				edge.setFlow(0);
+				from.getAdjList().add(edge);
 			}
 			numberOfEdges++;
 		}
@@ -521,6 +560,56 @@ public   class AdjListGraph<Integer> implements IGraph<Integer> {
 		return ans;
 	}
 
+	private boolean dinic_bfs(int src, int dst, int[] q, int[] dist){
+		Arrays.fill(dist, -1);
+		dist[src]=0;
+		int qt=0;q[qt++]=src;
+		for(int qh=0;qh<qt;qh++){
+			int u=q[qh];
+			List<Edge<Integer>> vert = map.get(vertices.get(u).getIndex()).getAdjList();
+			for (int i = 0; i < vert.size(); i++) {
+				Edge e = vert.get(i);
+				int v = e.getDestination().getIndex();
+				if(dist[v]<0&&e.getFlow()<e.getCapacity()) {dist[v]=dist[u]+1; q[qt++]=v;}
+			}
+		}
+		return dist[dst]>=0;
+	}
+	private long dinic_dfs(int u, long f, int src, int dst, int[] work, int[] dist){
+		if(u==dst)return f;
+		List<Edge<Integer>> vert = map.get(vertices.get(u).getIndex()).getAdjList();
+		for(int i=work[u];i<vert.size();i++){
+			Edge e = vert.get(i);
+			if(e.getCapacity()<=e.getFlow())continue;
+			int v=e.getDestination().getIndex();
+			List<Edge<Integer>> vertt = map.get(vertices.get(v).getIndex()).getAdjList();
+			if(dist[v]==dist[u]+1){
+				ansMFP+=""+u+","+e.getId()+","+v+"-";
+				long df=dinic_dfs(v,Math.min(f,e.getCapacity()-e.getFlow()), src,dst,work,dist);
+				if(df>0){e.setFlow(e.getFlow()+df);vertt.get(e.getRev()).setFlow(vertt.get(e.getRev()).getFlow()-df);return df;}
+				
+			}
+		}
+		return 0;
+	}
+	public long max_flow(int _src, int _dst){
+		int src=_src;int dst=_dst;
+		long result=0;
+		int[] work = new int[numberOfVertices];
+		int[] dist = new int[numberOfVertices];
+		int[] q = new int[numberOfVertices];
+		while(dinic_bfs(src,dst,q,dist)){
+			Arrays.fill(work, 0);
+			long delta = 0;
+			while((delta=dinic_dfs(src,(long)1e18,src,dst,work,dist))>0) {
+				ansMFP+=delta+"\n";
+				result+=delta;
+			}
+			
+		}
+		return result;
+	}
+	
 	/**
 	 * This function obtains the list of edges of the graph.
 	 * @return The list of edges.
@@ -530,7 +619,9 @@ public   class AdjListGraph<Integer> implements IGraph<Integer> {
 		for (int i = 0; i < vertices.size(); i++) {
 			AdjVertex<Integer> v = (AdjVertex<Integer>) vertices.get(i);
 			for (int j = 0; j < v.getAdjList().size(); j++) {
-				edges.add(v.getAdjList().get(j));
+				if(v.getAdjList().get(j).getId()>=0) {
+					edges.add(v.getAdjList().get(j));
+				}	
 			}
 		}
 		return edges;
@@ -575,6 +666,9 @@ public   class AdjListGraph<Integer> implements IGraph<Integer> {
 	public boolean isWeighted() {
 		return weighted;
 	}
-
+	
+	public String getAnsMFP() {
+		return ansMFP;
+	}
 
 }

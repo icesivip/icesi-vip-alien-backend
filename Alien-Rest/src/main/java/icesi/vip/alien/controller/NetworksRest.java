@@ -1,6 +1,9 @@
 package icesi.vip.alien.controller;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -9,82 +12,61 @@ import icesi.vip.alien.service.networks.AdjListGraph;
 import icesi.vip.alien.service.networks.AdjVertex;
 import icesi.vip.alien.service.networks.Edge;
 import icesi.vip.alien.service.networks.Vertex;
-
+import icesi.vip.alien.dto.networks.*;
 @RestController
 @RequestMapping("/api/networksModule")
 @CrossOrigin(origins = "*")
 public class NetworksRest {
 	
-	@RequestMapping("/shortestPath")
-	public String buildGraph(
-
-			@RequestParam(value = "rows", defaultValue = "1") String rows,
-			@RequestParam(value = "cols", defaultValue = "1") String cols,
-			@RequestParam(value = "graph", defaultValue = "1") String graph,
-			@RequestParam(value = "destiny", defaultValue = "-1") String destiny,
-			@RequestParam(value = "from", required = true, defaultValue = "0") String from)throws Exception{
+	@PostMapping("/solveDijkstra")
+	public String solveDijkstra(@RequestBody GraphDTO GraphDTO) {
 		
-		try {
 			
 			AdjListGraph<Integer> g = new AdjListGraph<>(true, true);
-			String[] arr = graph.split("-");
-			int n = Integer.parseInt(rows);
-			int m = Integer.parseInt(cols);
+			int n = GraphDTO.getGraph().length;
+			int m = GraphDTO.getGraph()[0].length;
 			int k = 0;
 			for(int i = 0; i < n; i++) g.addVertex(i);
 			for(int i = 0; i < n; i++) {
 				for(int j = 0; j < m; j++) {
-					String[] arr2 = arr[k].split(",");
-					long weight =  Integer.parseInt(arr2[0]);
-					if(weight != 0) {
-						g.addEdge(i, j,weight, Integer.parseInt(arr2[1]));
+					if(!GraphDTO.getGraph()[i][j].isEmpty()) {
+						long weight =  Integer.parseInt(GraphDTO.getGraph()[i][j]);
+						g.addEdge(i, j,weight, k);
+						k++;
 					}
-					k++;
+					
 				}
 			}
-			int source = Integer.parseInt(from);
+			int source = Integer.parseInt(GraphDTO.getSource());
 			String ans = "";
 			ans= g.dijkstra(g.getVertices().get(source));
 			return ans;
-		} catch (Exception e) {
-			throw new Exception(e.getMessage());
-		}
+		
 
 	}
 	
-	@CrossOrigin
-	@RequestMapping("/getShortestPath")
-	public String getPath(
-
-			@RequestParam(value = "rows", defaultValue = "1") String rows,
-			@RequestParam(value = "cols", defaultValue = "1") String cols,
-			@RequestParam(value = "graph", defaultValue = "1") String graph,
-			@RequestParam(value = "from", required = true, defaultValue = "0") String from,
-			@RequestParam(value = "destiny", defaultValue = "-1") String destiny)throws Exception{
-		
-		try {
+	@PostMapping("/getShortestPath")
+	public String getPath(@RequestBody GraphDTO GraphDTO) {
 			
 			AdjListGraph<Integer> g = new AdjListGraph<>(true, true);
-			String[] arr = graph.split("-");
-			int n = Integer.parseInt(rows);
-			int m = Integer.parseInt(cols);
+			int n = GraphDTO.getGraph().length;
+			int m = GraphDTO.getGraph()[0].length;
 			int k = 0;
 			for(int i = 0; i < n; i++) g.addVertex(i);
 			for(int i = 0; i < n; i++) {
 				for(int j = 0; j < m; j++) {
-					String[] arr2 = arr[k].split(",");
-					long weight =  Integer.parseInt(arr2[0]);
-					if(weight != 0) {
-						g.addEdge(i, j,weight, Integer.parseInt(arr2[1]));
+					if(!GraphDTO.getGraph()[i][j].isEmpty()) {
+						long weight =  Integer.parseInt(GraphDTO.getGraph()[i][j]);
+						g.addEdge(i, j,weight, k);
+						k++;
 					}
-					k++;
 				}
 			}
-			int source = Integer.parseInt(from);
+			int source = Integer.parseInt(GraphDTO.getSource());
 			String ans = "";
 			g.dijkstra(g.getVertices().get(source));
-			Vertex<Integer> dest =  g.getVertices().get(Integer.parseInt(destiny));
-			Vertex<Integer> curr = g.getVertices().get(Integer.parseInt(destiny));
+			Vertex<Integer> dest =  g.getVertices().get(Integer.parseInt(GraphDTO.getSink()));
+			Vertex<Integer> curr = g.getVertices().get(Integer.parseInt(GraphDTO.getSink()));
 			while(curr.getPred()!=null) {
 				AdjVertex<Integer> y = g.searchVertex(curr.getValue());
 				AdjVertex<Integer> x = g.searchVertex(curr.getPred().getValue());
@@ -94,44 +76,57 @@ public class NetworksRest {
 			}
 			ans+=String.valueOf(dest.getD());
 			return ans;
-		} catch (Exception e) {
-			throw new Exception(e.getMessage());
-		}
+		
 
 	}
-	@CrossOrigin
-	@RequestMapping("/mstKruskal")
-	public String mstKruskal(
-
-			@RequestParam(value = "rows", defaultValue = "1") String rows,
-			@RequestParam(value = "cols", defaultValue = "1") String cols,
-			@RequestParam(value = "graph", defaultValue = "1") String graph)throws Exception{
-		
-		try {
+	@PostMapping("/solveMST")
+	public String mstKruskal(@RequestBody GraphDTO GraphDTO) {
 			
-			AdjListGraph<Integer> g = new AdjListGraph<>(true, true);
-			String[] arr = graph.split("-");
-			int n = Integer.parseInt(rows);
-			int m = Integer.parseInt(cols);
-			int k = 0;
-			for(int i = 0; i < n; i++) g.addVertex(i);
-			for(int i = 0; i < n; i++) {
-				for(int j = 0; j < m; j++) {
-					String[] arr2 = arr[k].split(",");
-					long weight =  Integer.parseInt(arr2[0]);
-					if(weight != 0) {
-						g.addEdge(i, j,weight, Integer.parseInt(arr2[1]));
-					}
+		AdjListGraph<Integer> g = new AdjListGraph<>(true, true);
+		int n = GraphDTO.getGraph().length;
+		int m = GraphDTO.getGraph()[0].length;
+		int k = 0;
+		for(int i = 0; i < n; i++) g.addVertex(i);
+		for(int i = 0; i < n; i++) {
+			for(int j = 0; j < m; j++) {
+				if(!GraphDTO.getGraph()[i][j].isEmpty()) {
+					long weight =  Integer.parseInt(GraphDTO.getGraph()[i][j]);
+					g.addEdge(i, j,weight, k);
 					k++;
 				}
 			}
+		}
 		
 			String ans = g.kruskal();
 			return ans;
 			
-		} catch (Exception e) {
-			throw new Exception(e.getMessage());
+
+	}
+	
+	
+	// para mfp  poner addEdgeToMFP
+	
+	@PostMapping("/solveFlow")
+	public String mfp(@RequestBody GraphDTO GraphDTO) {
+			
+		AdjListGraph<Integer> g = new AdjListGraph<>(true, true);
+		int n = GraphDTO.getGraph().length;
+		int m = GraphDTO.getGraph()[0].length;
+		int k = 0;
+		for(int i = 0; i < n; i++) g.addVertex(i);
+		for(int i = 0; i < n; i++) {
+			for(int j = 0; j < m; j++) {
+				if(!GraphDTO.getGraph()[i][j].isEmpty()) {
+					long weight =  Integer.parseInt(GraphDTO.getGraph()[i][j]);
+					g.addEdgeToMFP(i, j,weight, k);
+					k+=2;
+				}
+			}
 		}
+		g.max_flow(Integer.parseInt(GraphDTO.getSource()), Integer.parseInt(GraphDTO.getSink()));
+		String ans = g.getAnsMFP();
+		return ans;
+			
 
 	}
 	
