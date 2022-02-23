@@ -437,7 +437,7 @@ public class Simplex implements Solver {
 		if (procd) {
 			for (int i = 0; i < Base.length; i++) {
 				theta[i] = igualdad[i][0] / matr[i][posMasG];
-				if (rowLow > theta[i] && theta[i] > 0) {
+				if (rowLow > theta[i] && theta[i] >= 0 && matr[i][posMasG]>0) {
 					rowLow = theta[i];
 					posLow = i;
 				}
